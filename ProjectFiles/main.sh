@@ -13,17 +13,36 @@ do
             echo "$input_value"
             ;;
         "1")
-            echo Choose a user name: 
-            read username
+            #User Creation Working
+            read -p "Choose a username: " username
+            # echo -n "Choose a user name: " 
+            # read username
+            echo -n "Choose a password: "
+            read -s password #-s hides user input
+            printf "\n"
+            echo -n "Confirm password: "
+            read -s confirm_password
+            printf "\n"
 
-            if [[ "$username" = *[[:space:]]* ]]; then
-                echo "Invalid Username -> No spaces allowed!"
-            fi
-            if [[ "$username" = -* ]]; then
-                echo "Invalid Username -> Username cannot start with '-'"
+
+            if id "$username" &>/dev/null; then #&>/dev/null sends stdout and stderr to a black hole, only cares about success or failure
+                echo "User $username already exists. Aborting User Creation"
+            else 
+                if [[ "$password" == "$confirm_password" ]]; then
+                    echo Passwords Match!
+                    sudo useradd -m "$username"
+                    hashed_password=$(openssl passwd -6 "$password")
+                    sudo usermod --password "$hashed_password" "$username"
+
+                    echo "User Created Successfully!"
+                else
+                    echo "Passwords don't match!"
+                fi
             fi
 
-            echo "$username"
+            # echo "$username"
+            # echo "$password"
+            # echo "$confirm_password"
             ;;
         "4")
             awk -F: '($3 >= 1000 && $3 <= 65000) {print $1}' /etc/passwd
