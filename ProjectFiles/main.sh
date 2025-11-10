@@ -45,9 +45,11 @@ do
             # echo "$confirm_password"
             ;;
         "4")
+            #Account Output Working
             awk -F: '($3 >= 1000 && $3 <= 65000) {print $1}' /etc/passwd
             ;;
         "5")
+            #Exit Command Working
             echo "$input_value"
             break
             ;;
