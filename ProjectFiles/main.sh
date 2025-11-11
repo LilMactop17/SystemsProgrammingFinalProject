@@ -9,7 +9,7 @@ do
     printf "5. Exit\n"
     read input_value
     case "$input_value" in 
-        "2" | "3")
+        "3")
             echo "$input_value"
             ;;
         "1")
@@ -43,6 +43,28 @@ do
             # echo "$username"
             # echo "$password"
             # echo "$confirm_password"
+            ;;
+        "2")
+            read -p "Choose User to Delete: " username
+            if ! id "$username" &>/dev/null; then #checks if username doesn't exist
+                echo "User $username does not exist. No user to delete!"
+            else
+                read -p "Do you want to remove $username's home directory? (Y/N)" remove_home_input
+                case $remove_home_input in
+                    "y" | "Y")
+                        remove_home="--remove-home"
+                        ;;
+                    "n" | "N")
+                        remove_home=""
+                        ;;
+                    *)
+                        echo Invalid Input
+                        continue
+                        ;;
+                    esac
+                sudo pkill -u "$username" 2>/dev/null || true
+                sudo deluser ${remove_home:+$remove_home} "$username"
+            fi
             ;;
         "4")
             #Account Output Working
