@@ -66,6 +66,13 @@ do
                 echo "User does not exist. Returning to menu..."
             else
                 read -p "What do you want to modify for user $username" modify_this
+                $modify_this="${modify_this,,}" #sets modify_this to all lowercase
+                case $modify_this in
+                    "full name")
+                        read -p "Select real name for $username?" full_name
+                        sudo chfn -f ${fullname:+$fullname} "$username" 
+                        ;;
+                    
             ;;
         "4")
             #Account Output Working
