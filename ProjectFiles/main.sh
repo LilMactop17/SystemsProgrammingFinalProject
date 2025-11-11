@@ -8,6 +8,7 @@ do
     printf "4. View Existing Users\n"
     printf "5. Exit\n"
     read input_value
+    # clear, if i want to clear terminal each time, but I don't think that's practical for the nature of this program
     case "$input_value" in 
         "1")
             #User Creation Working
@@ -40,6 +41,23 @@ do
             ;;
         "2")
             read -p "Choose User to Delete: " username
+
+            #prevent deletion of important uid's
+            uid="$(id -u "$username")" || { echo "Cannot resolve UID for $username"; continue; }
+            if [[ "$username" = "root" || "$uid" -eq 0 ]]; then
+                echo "Refusing to delete root."
+                continue
+            fi
+            if [[ "$uid" -lt 1000 ]]; then
+                echo "Refusing to delete system accounts (UID < 1000)."
+                continue
+            fi
+            if [[ "$username" = "$(id -un)" ]]; then
+                echo "Refusing to delete the currently logged-in user."
+                continue
+            fi
+
+            #delete function
             if ! id "$username" &>/dev/null; then #checks if username doesn't exist
                 echo "User $username does not exist.Returning to menu..."
             else
@@ -61,18 +79,44 @@ do
             fi
             ;;
         "3")
-            read -p "Select user to modify" $username
-            if ! id $username &>/dev/null; then
+            read -p "Select user to modify: " username
+
+            if ! id "$username" &>/dev/null; then
                 echo "User does not exist. Returning to menu..."
             else
-                read -p "What do you want to modify for user $username" modify_this
-                $modify_this="${modify_this,,}" #sets modify_this to all lowercase
+                printf "What would you like to modify for $username: 1, 2, 3, \n"
+                printf "1. Change Full Name\n"
+                printf "2. Change Password\n"
+                printf "3. Add to Group\n"
+                # printf "4. Change Default Shell\n"
+                read modify_this
+
+
+                # $modify_this="${modify_this,,}" #sets modify_this to all lowercase
                 case $modify_this in
-                    "full name")
-                        read -p "Select real name for $username?" full_name
-                        sudo chfn -f ${fullname:+$fullname} "$username" 
+                    "1")
+                        read -p "Select real name for $username " fullname
+                        sudo chfn -f "${fullname:+$fullname}" "$username" 
+                        echo $fullname
+                        echo $username
+                        echo "Successfully Changed Full Name to $fullname"
                         ;;
-                    
+                    "2")
+                        sudo passwd $username
+                        printf "Successfully Changed Password"
+                        ;;
+                    "3")
+                        read -p "Input groups you would like to add the user into, separated by spaces: " groups
+                        # read -r -a groups_array <<< "groups"
+                        group_csv="$(tr -s '[:space:]' ',' <<<"$groups" | sed 's/^,\|,$//g')"
+                        sudo usermod -aG  "$groups_csv" "$username"
+                        echo "Added $username to groups $groups"
+                        ;;
+                    *)
+                        echo "Not an Option"
+                        ;;
+                    esac
+            fi
             ;;
         "4")
             #Account Output Working
@@ -80,10 +124,10 @@ do
             ;;
         "5")
             #Exit Command Working
-            echo "$input_value"
             break
             ;;
         *)
             echo Incorrect Input;   
     esac
+    printf "\n"
 done
