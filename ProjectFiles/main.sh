@@ -9,36 +9,30 @@ do
     printf "5. Exit\n"
     read input_value
     case "$input_value" in 
-        "3")
-            echo "$input_value"
-            ;;
         "1")
             #User Creation Working
             read -p "Choose a username: " username
             # echo -n "Choose a user name: " 
             # read username
-            echo -n "Choose a password: "
-            read -s password #-s hides user input
-            printf "\n"
-            echo -n "Confirm password: "
-            read -s confirm_password
-            printf "\n"
+            read -s -r -p "Choose a password: " password; printf "\n"
+            read -s -r -p "Confirm password: " confirm_password; printf "\n"
 
 
             if id "$username" &>/dev/null; then #&>/dev/null sends stdout and stderr to a black hole, only cares about success or failure
-                echo "User $username already exists. Aborting User Creation"
+                echo "User $username already exists. Returning to menu..."
             else 
                 if [[ "$password" == "$confirm_password" ]]; then
                     echo Passwords Match!
                     sudo useradd -m "$username"
                     hashed_password=$(openssl passwd -6 "$password")
-                    sudo usermod --password "$hashed_password" "$username"
-
+                    printf '%s:%s\n' "$username" "$hashed_password" | sudo chpasswd -e
+                    unset -v hashed_password
                     echo "User Created Successfully!"
                 else
                     echo "Passwords don't match!"
                 fi
             fi
+            unset -v password confirm_password
 
             # echo "$username"
             # echo "$password"
@@ -47,7 +41,7 @@ do
         "2")
             read -p "Choose User to Delete: " username
             if ! id "$username" &>/dev/null; then #checks if username doesn't exist
-                echo "User $username does not exist. No user to delete!"
+                echo "User $username does not exist.Returning to menu..."
             else
                 read -p "Do you want to remove $username's home directory? (Y/N)" remove_home_input
                 case $remove_home_input in
@@ -65,6 +59,13 @@ do
                 sudo pkill -u "$username" 2>/dev/null || true
                 sudo deluser ${remove_home:+$remove_home} "$username"
             fi
+            ;;
+        "3")
+            read -p "Select user to modify" $username
+            if ! id $username &>/dev/null; then
+                echo "User does not exist. Returning to menu..."
+            else
+                read -p "What do you want to modify for user $username" modify_this
             ;;
         "4")
             #Account Output Working
