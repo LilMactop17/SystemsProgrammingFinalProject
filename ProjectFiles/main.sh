@@ -88,7 +88,7 @@ do
                 printf "1. Change Full Name\n"
                 printf "2. Change Password\n"
                 printf "3. Add to Group\n"
-                # printf "4. Change Default Shell\n"
+                printf "4. Change Default Shell\n"
                 read modify_this
 
 
@@ -112,9 +112,17 @@ do
                         sudo usermod -aG  "$groups_csv" "$username"
                         echo "Added $username to groups $groups"
                         ;;
+                    "4")
+                        
+                        cat /etc/shells
+                        echo "Enter one of the abouve shells to change to "
+                        read shellname
+                        sudo chsh -s $shellname $username
+                        ;;
                     *)
                         echo "Not an Option"
                         ;;
+                    
                     esac
             fi
             ;;
