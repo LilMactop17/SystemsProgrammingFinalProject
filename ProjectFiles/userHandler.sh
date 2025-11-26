@@ -20,7 +20,7 @@ do
 
 
             if id "$username" &>/dev/null; then #&>/dev/null sends stdout and stderr to a black hole, only cares about success or failure
-                echo "User $username already exists. Returning to menu..."
+                echo "2 : User $username already exists. Returning to menu..."
             else 
                 if [[ "$password" == "$confirm_password" ]]; then
                     echo Passwords Match!
@@ -28,9 +28,9 @@ do
                     hashed_password=$(openssl passwd -6 "$password")
                     printf '%s:%s\n' "$username" "$hashed_password" | sudo chpasswd -e
                     unset -v hashed_password
-                    echo "User Created Successfully!"
+                    echo "0 : User Created Successfully!"
                 else
-                    echo "Passwords don't match!"
+                    echo "2 : Passwords don't match!"
                 fi
             fi
             unset -v password confirm_password
@@ -45,15 +45,15 @@ do
             #prevent deletion of important uid's
             uid="$(id -u "$username")" || { echo "Cannot resolve UID for $username"; continue; }
             if [[ "$username" = "root" || "$uid" -eq 0 ]]; then
-                echo "Refusing to delete root."
+                echo "2 : Refusing to delete root."
                 continue
             fi
             if [[ "$uid" -lt 1000 ]]; then
-                echo "Refusing to delete system accounts (UID < 1000)."
+                echo "1 : Refusing to delete system accounts (UID < 1000)."
                 continue
             fi
             if [[ "$username" = "$(id -un)" ]]; then
-                echo "Refusing to delete the currently logged-in user."
+                echo "1 : Refusing to delete the currently logged-in user."
                 continue
             fi
 
@@ -70,15 +70,15 @@ do
                         remove_home=""
                         ;;
                     *)
-                        echo Invalid Input
+                        echo "2 : nvalid Input"
                         continue
                         ;;
                     esac
                 sudo pkill -u "$username" 2>/dev/null || true
                 if sudo userdel ${remove_home:+-r} "$username"; then
-                    echo "Successfully deleted user: $username"
+                    echo "0 : Successfully deleted user: $username"
                 else
-                    echo "Failed to delete user: $username"
+                    echo "1 : Failed to delete user: $username"
                 fi
 
             fi
@@ -87,7 +87,7 @@ do
             read -p "Select user to modify: " username
 
             if ! id "$username" &>/dev/null; then
-                echo "User does not exist. Returning to menu..."
+                echo "2 : User does not exist. Returning to menu..."
             else
                 printf "What would you like to modify for $username: 1, 2, 3, \n"
                 printf "1. Change Full Name\n"
@@ -104,18 +104,18 @@ do
                         sudo chfn -f "${fullname:+$fullname}" "$username" 
                         echo $fullname
                         echo $username
-                        echo "Successfully Changed Full Name to $fullname"
+                        echo "0 : Successfully Changed Full Name to $fullname"
                         ;;
                     "2")
                         sudo passwd $username
-                        printf "Successfully Changed Password"
+                        printf "0 : Successfully Changed Password"
                         ;;
                     "3")
                         read -p "Input groups you would like to add the user into, separated by spaces: " groups
                         # read -r -a groups_array <<< "groups"
                         group_csv="$(tr -s '[:space:]' ',' <<<"$groups" | sed 's/^,\|,$//g')"
                         sudo usermod -aG  "$groups_csv" "$username"
-                        echo "Added $username to groups $groups"
+                        echo "0 : Added $username to groups $groups"
                         ;;
                     "4")
                         
@@ -125,7 +125,7 @@ do
                         sudo chsh -s $shellname $username
                         ;;
                     *)
-                        echo "Not an Option"
+                        echo "2 : Not an Option"
                         ;;
                     
                     esac
@@ -140,7 +140,7 @@ do
             break
             ;;
         *)
-            echo Incorrect Input;   
+            echo "2 : Incorrect Input";   
     esac
     printf "\n"
 done
