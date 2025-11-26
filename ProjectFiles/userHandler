@@ -64,7 +64,7 @@ do
                 read -p "Do you want to remove $username's home directory? (Y/N)" remove_home_input
                 case $remove_home_input in
                     "y" | "Y")
-                        remove_home="--remove-home"
+                        remove_home="-r"
                         ;;
                     "n" | "N")
                         remove_home=""
@@ -75,7 +75,12 @@ do
                         ;;
                     esac
                 sudo pkill -u "$username" 2>/dev/null || true
-                sudo deluser ${remove_home:+$remove_home} "$username"
+                if sudo userdel ${remove_home:+-r} "$username"; then
+                    echo "Successfully deleted user: $username"
+                else
+                    echo "Failed to delete user: $username"
+                fi
+
             fi
             ;;
         "3")
