@@ -70,7 +70,7 @@ do
                         remove_home=""
                         ;;
                     *)
-                        echo "2 : nvalid Input"
+                        echo "2 : Invalid Input"
                         continue
                         ;;
                     esac
